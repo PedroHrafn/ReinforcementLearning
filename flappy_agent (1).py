@@ -54,12 +54,39 @@ def run_game(nb_episodes, agent):
 
     score = 0
     frames = 0
+    counter = 0
+    test = True
+    newGame = True
     while nb_episodes > 0 and frames < 1000000:
         # pick an action
+        if counter % 10000 == 0:
+            test = True
+        if test and newGame:
+            test = False
+            nb_test_episodes = 10
+            while nb_test_episodes > 0:
+                state = env.game.getGameState()
+                action = agent.policy(state)
+                s1 = agent.stateToTuple(state)
+                reward = env.act(env.getActionSet()[action])
+                s2 = agent.stateToTuple(env.game.getGameState())
+                end = env.game_over()
+                score += reward
+                agent.observe(s1, action, reward, s2, end)
+                # reset the environment if the game is over
+                if end:
+                    newGame = True
+                    print("score for this episode: %d \t nr: %d   ------THIS IS FROM TEST!!!!!!!!!!!!" %
+                          (score, nb_episodes - 10000))
+                    env.reset_game()
+                    nb_test_episodes -= 1
+                    with open("MC_NonTrain_Results.txt", "a") as f:
+                        f.write(f"{frames}:{score}\n")
+                    score = 0
         # TODO: for training using agent.training_policy instead
         state = env.game.getGameState()
-        # action = agent.training_policy(state)
-        action = agent.policy(env.game.getGameState())
+        action = agent.training_policy(state)
+        # action = agent.policy(env.game.getGameState())
         # step the environment
         s1 = agent.stateToTuple(state)
         reward = env.act(env.getActionSet()[action])
@@ -72,14 +99,15 @@ def run_game(nb_episodes, agent):
         score += reward
 
         frames += 1
+        counter += 1
         # reset the environment if the game is over
         if end:
             print("score for this episode: %d \t nr: %d" %
                   (score, nb_episodes - 10000))
             env.reset_game()
             nb_episodes -= 1
-            with open("QL_Results.txt", "a") as f:
-                f.write(f"{frames}:{score}\n")
+            """ with open("QL_Results.txt", "a") as f:
+                f.write(f"{frames}:{score}\n") """
             score = 0
 
 
@@ -183,9 +211,9 @@ class QLearning(FlappyAgent):
         return 0
 
 
-agent = QLearning()
+agent = MonteCarlo()
 #agent.q = eval(open('QL_Policy.txt', 'r').read())
 
 run_game(10000, agent)
-with open("QL_Policy.txt", "w") as f:
+with open("MC_Policy.txt", "w") as f:
     f.write(str(agent.q))
