@@ -1,0 +1,60 @@
+﻿discrete - the enviroment is finite?
+    typically episodic
+
+state transitions themselves are determenistic´
+
+
+in the state:
+    position of bird: y_axis    [0,512]
+    distanace to pipe: x_axis   [0,288]
+    vertical velocity of the bird[-8,,10] per frame
+    y-coords of pipe-gap        [0,512]
+
+Which algorithm
+    not dynamic programming cause we dont know the transition properties
+
+    monte caro - need to be aware if we run really long episodes it takes long time to learnt
+    temporal difference learning - we learn in every step that is generated
+
+        -what parameters for the algorithm
+
+        MonteCarlo - Q(s,a) a-> flap or not flap,
+                dict-q[s][0 or 1 (flap or not flap)] = v
+
+
+everything must be done in the agent?
+
+
+
+def observe(self, s1, a, r, s2, end):
+        # episode.append((s1, a, r, s2))
+        # if end:
+        #     learn_from_episode(episode)
+        #     episode = []
+        return
+
+    def training_policy(self, state):
+        # q[state][0] <> q[state][1]
+        # q[s][a] =
+        # if not s in q:
+        #     q[s] = (0, 0)
+
+        # if r.random() < epsilon:
+        #     return r.randint(0, 1)
+        # else:
+        #     greedyPolicy
+        return 1
+
+
+
+
+
+
+
+to implement in agent for monte carlo:
+	training-policy : epsilon-greedy based on Q(s,a) -> in Q-learning it's same ---
+	policy : technically the same as the trianing-policy: greedy, based on Q(s,a) - will not convert to the best policy, it's still a safe policy.
+	observe(s,a,r,s',term): -> For Q learning you learn from each step-> update rule for Q-learning := Q(s,a) + (dsicount?) * (r + dc * max a' Q(s',a')
+																	- Q(s,a) )
+
+(** note ** A problem with q leaning you need the values before you see them)
