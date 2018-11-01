@@ -46,7 +46,7 @@ def run_game(nb_episodes, agent):
     # TODO: when training use the following instead:
     reward_values = agent.reward_values()
 
-    env = PLE(FlappyBird(), fps=30, display_screen=True, force_fps=False, rng=None,
+    env = PLE(FlappyBird(), fps=30, display_screen=False, force_fps=True, rng=None,
               reward_values=reward_values)
     # TODO: to speed up training change parameters of PLE as follows:
     # display_screen=False, force_fps=True
@@ -67,7 +67,7 @@ def run_game(nb_episodes, agent):
         s2 = agent.stateToTuple(env.game.getGameState())
         # TODO: for training let the agent observe the current state transition
         end = env.game_over()
-        #agent.observe(s1, action, reward, s2, end)
+        agent.observe(s1, action, reward, s2, end)
 
         score += reward
 
@@ -89,7 +89,7 @@ class MonteCarlo(FlappyAgent):
         self.pi = dict.fromkeys(self.getAllPossibleStates(), (0, 0))
         self.episode = []
         self.returns = dict()
-        self.discount = 1
+        self.discount = 0.95
         return
 
     def learn_from_episode(self):
@@ -156,7 +156,7 @@ class QLearning(FlappyAgent):
 
     def learn_from_step(self, s1, a, r, s2):
         nextMax = max([self.q[s2][0], self.q[s2][1]])
-        newVal = self.q[s1][a] + 0.1 * \
+        newVal = self.q[s1][a] + 0.2 * \
             (r + self.discount * nextMax - self.q[s1][a])
 
         if a == 1:
@@ -172,19 +172,19 @@ class QLearning(FlappyAgent):
 
     def training_policy(self, state):
         actionTuple = self.q[self.stateToTuple(state)]
-        if actionTuple[1] > actionTuple[0]:
+        if actionTuple[1] >= actionTuple[0]:
             return 1
         return 0
 
     def policy(self, state):
         actionTuple = self.q[self.stateToTuple(state)]
-        if actionTuple[1] > actionTuple[0]:
+        if actionTuple[1] >= actionTuple[0]:
             return 1
         return 0
 
 
 agent = QLearning()
-agent.q = eval(open('QL_Policy.txt', 'r').read())
+#agent.q = eval(open('QL_Policy.txt', 'r').read())
 
 run_game(10000, agent)
 with open("QL_Policy.txt", "w") as f:
