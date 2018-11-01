@@ -78,8 +78,8 @@ def run_game(nb_episodes, agent):
                   (score, nb_episodes - 10000))
             env.reset_game()
             nb_episodes -= 1
-            """ with open("MC_Results.txt", "a") as f:
-                f.write(f"{frames}:{score}\n") """
+            with open("QL_Results.txt", "a") as f:
+                f.write(f"{frames}:{score}\n")
             score = 0
 
 
@@ -148,6 +148,44 @@ class MonteCarlo(FlappyAgent):
         return 0
 
 
-agent = MonteCarlo()
-agent.q = eval(open('MC_Policy.txt', 'r').read())
-run_game(10, agent)
+class QLearning(FlappyAgent):
+    def __init__(self):
+        self.q = dict.fromkeys(self.getAllPossibleStates(), (0, 0))
+        self.discount = 1
+        return
+
+    def learn_from_step(self, s1, a, r, s2):
+        nextMax = max([self.q[s2][0], self.q[s2][1]])
+        newVal = self.q[s1][a] + 0.1 * \
+            (r + self.discount * nextMax - self.q[s1][a])
+
+        if a == 1:
+            newActionValue = (self.q[s1][0], newVal)
+        else:
+            newActionValue = (newVal, self.q[s1][1])
+        self.q[s1] = newActionValue
+        return
+
+    def observe(self, s1, a, r, s2, end):
+        self.learn_from_step(s1, a, r, s2)
+        return
+
+    def training_policy(self, state):
+        actionTuple = self.q[self.stateToTuple(state)]
+        if actionTuple[1] > actionTuple[0]:
+            return 1
+        return 0
+
+    def policy(self, state):
+        actionTuple = self.q[self.stateToTuple(state)]
+        if actionTuple[1] > actionTuple[0]:
+            return 1
+        return 0
+
+
+agent = QLearning()
+agent.q = eval(open('QL_Policy.txt', 'r').read())
+
+run_game(10000, agent)
+with open("QL_Policy.txt", "w") as f:
+    f.write(str(agent.q))
