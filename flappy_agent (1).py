@@ -63,6 +63,7 @@ def run_game(nb_episodes, agent):
             test = True
         if test and newGame:
             test = False
+            newGame = False
             nb_test_episodes = 10
             while nb_test_episodes > 0:
                 state = env.game.getGameState()
@@ -72,7 +73,7 @@ def run_game(nb_episodes, agent):
                 s2 = agent.stateToTuple(env.game.getGameState())
                 end = env.game_over()
                 score += reward
-                agent.observe(s1, action, reward, s2, end)
+                # agent.observe(s1, action, reward, s2, end)
                 # reset the environment if the game is over
                 if end:
                     newGame = True
@@ -80,7 +81,7 @@ def run_game(nb_episodes, agent):
                           (score, nb_episodes - 10000))
                     env.reset_game()
                     nb_test_episodes -= 1
-                    with open("MC_NonTrain_Results.txt", "a") as f:
+                    with open("QL_Results.txt", "a") as f:
                         f.write(f"{frames}:{score}\n")
                     score = 0
         # TODO: for training using agent.training_policy instead
@@ -148,7 +149,6 @@ class MonteCarlo(FlappyAgent):
                 self.pi[G[0]] = (nonAstarValue, AstarValue)
             else:
                 self.pi[G[0]] = (AstarValue, nonAstarValue)
-            NextReward = reward
         return
 
     def observe(self, s1, a, r, s2, end):
@@ -200,20 +200,26 @@ class QLearning(FlappyAgent):
 
     def training_policy(self, state):
         actionTuple = self.q[self.stateToTuple(state)]
-        if actionTuple[1] >= actionTuple[0]:
+        if random.random() < 0.1:
+            return random.randint(0, 1)
+        if actionTuple[1] > actionTuple[0]:
             return 1
-        return 0
+        elif actionTuple[1] < actionTuple[0]:
+            return 0
+        return random.randint(0, 1)
 
     def policy(self, state):
         actionTuple = self.q[self.stateToTuple(state)]
-        if actionTuple[1] >= actionTuple[0]:
+        if actionTuple[1] > actionTuple[0]:
             return 1
-        return 0
+        elif actionTuple[1] < actionTuple[0]:
+            return 0
+        return random.randint(0, 1)
 
 
-agent = MonteCarlo()
+agent = QLearning()
 #agent.q = eval(open('QL_Policy.txt', 'r').read())
 
 run_game(10000, agent)
-with open("MC_Policy.txt", "w") as f:
+with open("QL_Policy.txt", "w") as f:
     f.write(str(agent.q))
